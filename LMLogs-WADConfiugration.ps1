@@ -11,8 +11,10 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 #
-
-$lm_company_name = "lmstevenvillardi"
+Param (
+   [Parameter(Mandatory = $true)]
+   [string] $lm_company_name
+)
 
 Write-Host "Collecting VM Info"
 $vm_info = ((Invoke-WebRequest -Uri 169.254.169.254/metadata/instance?api-version=2017-08-01 -Headers @{"Metadata"="true"}).Content | ConvertFrom-Json).compute
