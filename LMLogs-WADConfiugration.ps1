@@ -73,11 +73,10 @@ if ($storage_name -ne $(az storage account show --subscription $subscription_id 
     }
 }
 
-Write-Host "[Info]:generating the storage account sas token" -ForegroundColor White -BackgroundColor Black
-$storage_token_expiry=(get-date).AddYears(10).ToString("yyyy-MM-ddTHH:mmZ")
-$storage_account_sas_token=$(az storage account generate-sas --account-name $storage_name --expiry $storage_token_expiry --permissions wlacu --resource-types co --services bt -o tsv)
+Write-Host "[Info]:reading the storage account access key" -ForegroundColor White -BackgroundColor Black
+$storage_account_key=$(az storage account keys list --subscription $subscription_id -g $storage_group -n $storage_name --query [0].value -o tsv)
 if (!$?){
-    Write-Host "[Error]:couldn't generate the token" -ForegroundColor Red -BackgroundColor Black
+    Write-Host "[Error]:couldn't read the storage account access key" -ForegroundColor Red -BackgroundColor Black
     exit -1
 }
 
@@ -87,7 +86,7 @@ Try{
     $wad_protected_settings = (Invoke-WebRequest -Uri https://raw.githubusercontent.com/stevevillardi/lm-logs-azure-windows-vm/master/wad_protected_settings.json).Content | Out-File wad_protected_settings.json
 
     (Get-Content wad_protected_settings.json).Replace('__DIAGNOSTIC_STORAGE_ACCOUNT__', $storage_name) | Set-Content wad_protected_settings.json
-    (Get-Content wad_protected_settings.json).Replace('__DIAGNOSTIC_STORAGE_SAS_TOKEN__', $storage_account_sas_token) | Set-Content wad_protected_settings.json
+    (Get-Content wad_protected_settings.json).Replace('__DIAGNOSTIC_STORAGE_KEY__', $storage_account_key) | Set-Content wad_protected_settings.json
     (Get-Content wad_protected_settings.json).Replace('__LOGS_EVENT_HUB_URI__', $event_hub_uri) | Set-Content wad_protected_settings.json
     (Get-Content wad_protected_settings.json).Replace('__LOGS_EVENT_HUB_ACCESS_KEY__', $event_hub_auth_key) | Set-Content wad_protected_settings.json
 }

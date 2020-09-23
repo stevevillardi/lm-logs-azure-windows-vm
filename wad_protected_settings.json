@@ -1,6 +1,6 @@
 {
     "StorageAccountName": "__DIAGNOSTIC_STORAGE_ACCOUNT__",
-    "StorageAccountSasToken": "__DIAGNOSTIC_STORAGE_SAS_TOKEN__",
+    "storageAccountKey": "__DIAGNOSTIC_STORAGE_KEY__",
 	"EventHub": {
 		"Url": "__LOGS_EVENT_HUB_URI__",
 		"SharedAccessKeyName": "sender",
