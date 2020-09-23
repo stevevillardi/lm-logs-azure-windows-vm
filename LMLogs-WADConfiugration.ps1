@@ -53,7 +53,7 @@ if (!$event_hub_auth_key) {
 $event_hub_uri="https://$event_hub_namespace.servicebus.windows.net/$event_hub_name"
 Write-Host "generating the event hub sas uri"
 
-$storage_name=("diag$location$vm_name").Replace('[^a-zA-Z]','').ToLower()
+$storage_name=($("diag$location$vm_name") -replace "\W").ToLower()
 $storage_group=$vm_resource_group
 if ($storage_name.Length -gt 24){
     $storage_name=$storage_name.substring(0, 24)
@@ -78,3 +78,21 @@ if (!$?){
     Write-Host "couldn't generate the token"
     exit -1
 }
+
+Write-Host "writing the protected settings"
+$wad_protected_settings = (Invoke-WebRequest -Uri https://raw.githubusercontent.com/stevevillardi/lm-logs-azure-windows-vm/master/wad_protected_settings.json).Content | Out-File wad_protected_settings.json
+
+(Get-Content wad_protected_settings.json).Replace('__DIAGNOSTIC_STORAGE_ACCOUNT__', $storage_name) | Set-Content wad_protected_settings.json
+(Get-Content wad_protected_settings.json).Replace('__DIAGNOSTIC_STORAGE_SAS_TOKEN__', $storage_account_sas_token) | Set-Content wad_protected_settings.json
+(Get-Content wad_protected_settings.json).Replace('__LOGS_EVENT_HUB_URI__', $event_hub_uri) | Set-Content wad_protected_settings.json
+(Get-Content wad_protected_settings.json).Replace('__LOGS_EVENT_HUB_ACCESS_KEY__', $event_hub_auth_key) | Set-Content wad_protected_settings.json
+
+Write-Host "writing the public settings"
+$wad_public_settings = (Invoke-WebRequest -Uri https://raw.githubusercontent.com/stevevillardi/lm-logs-azure-windows-vm/master/wad_public_settings.json).Content | Out-File wad_public_settings.json
+
+(Get-Content wad_public_settings.json).Replace('__LOGS_EVENT_HUB_URI__', $event_hub_uri) | Set-Content wad_public_settings.json
+(Get-Content wad_public_settings.json).Replace('__DIAGNOSTIC_STORAGE_ACCOUNT__', $storage_name) | Set-Content wad_public_settings.json
+(Get-Content wad_public_settings.json).Replace('__VM_RESOURCE_ID__', $vm_resource_id) | Set-Content wad_public_settings.json
+
+Write-Host "update your logging settings in wad_public_settings.json and execute the following command:"
+Write-Host "az vm extension set --publisher Microsoft.Azure.Diagnostics --name IaaSDiagnostics --version 1.18 --resource-group $vm_resource_group --vm-name $vm_name --protected-settings wad_protected_settings.json --settings wad_public_settings.json"

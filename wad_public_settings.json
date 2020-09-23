@@ -26,7 +26,7 @@
                 {
                     "name": "LMLogsEventHub",
                     "EventHub": {
-                        "Url": "__LOGS_EVENT_HUB_URL__",
+                        "Url": "__LOGS_EVENT_HUB_URI__",
                         "SharedAccessKeyName": "sender",
                         "usePublisherId": false
                     }
